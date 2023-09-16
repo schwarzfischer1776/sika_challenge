@@ -1,0 +1,38 @@
+/* Style for user profile pictures */
+.profile-picture {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    background-color: #007BFF; /* Profile picture background color */
+    color: black; /* Text color for user profile */
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px; /* Margin between profile picture and message box */
+}
+
+/* Style for message containers */
+.message-container {
+    padding: 10px;
+}
+
+/* Style for message boxes */
+.message-box {
+    background-color: white; /* Message box background color */
+    border-radius: 10px; /* Rounded corners for message box */
+    box-shadow: 2px 2px 5px 2px rgba(0, 0, 0, 0.2); /* Shadow for message box */
+    padding: 10px; /* Padding inside message box */
+    margin: 10px 0; /* Margin between message boxes */
+    max-width: 70%; /* Maximum width of the message box */
+    color: black; /* Text color for user profile */
+}
+
+/* Style for chat application header, if needed */
+.chat-header {
+    background-color: #007BFF; /* Header background color */
+    color: black; /* Text color for header */
+    padding: 10px;
+    text-align: center;
+    font-size: 24px;
+}
