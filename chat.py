@@ -8,7 +8,7 @@ import json
 
 
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 # imports
 import pandas as pd
@@ -25,7 +25,11 @@ embedding_encoding = "cl100k_base"  # this the encoding for text-embedding-ada-0
 max_tokens = 8000  # the maximum for text-embedding-ada-002 is 8191
 
 
-
+# Instantiate the template with widgets displayed in the sidebar
+template = pn.template.FastListTemplate(
+    title="Research journaling",
+)
+# 
 
 initial_value = [
 {"You": "first journal entry"},
@@ -55,9 +59,7 @@ initial_value = [
     - checking that laser exites through fiber with visible laser
     - turning off ventilation system to reduce noise"""},
 {"Felix": """still no idea why not working; Finally he figures out what the problem is:
-    - detection diode not calibrated correctly"""},
-{"You": """first attempt of coating tapered fiber with SU8 by using different experimental parameters; 
- nothing seen under microscope meaning either development step dissolved everything or the SU8 did not stick to fiber"""}
+    - detection diode not calibrated correctly"""}
 ]
 # Deserialize the list from the binary file (unpickling)
 #with open('my_list.pkl', 'rb') as file:
@@ -68,13 +70,15 @@ chat_box = pn.widgets.ChatBox(
     value=initial_value,
     message_icons={
         "You": "https://user-images.githubusercontent.com/42288570/246667322-33a2a320-9ea3-4e79-8fb8-fcb5b6eac9c0.png",
-        "Theo": "https://user-images.githubusercontent.com/42288570/246671017-d3a26763-f7f5-4e8d-8933-cb69670f90a8.svg",
-        "Felix": "https://user-images.githubusercontent.com/42288570/246667325-ad4e3434-d173-4463-bb98-5c5d4a892b25.png",
+        "Theo": "/Users/riarosenauer/Library/Mobile Documents/com~apple~CloudDocs/Ria/Uni/Hackaton/HackZurich 2023/Profile_1.png",
+        "Felix": "/Users/riarosenauer/Library/Mobile Documents/com~apple~CloudDocs/Ria/Uni/Hackaton/HackZurich 2023/Profile_2.png",
         "GPT4": "https://user-images.githubusercontent.com/42288570/246667324-5cf26789-765f-4f76-a8bf-49309d2ae84f.png",
+        "Tipp": "/Users/riarosenauer/Library/Mobile Documents/com~apple~CloudDocs/Ria/Uni/Hackaton/HackZurich 2023/tipp.png",
+        "Rewind": "/Users/riarosenauer/Library/Mobile Documents/com~apple~CloudDocs/Ria/Uni/Hackaton/HackZurich 2023/rewind-time.png"
     },
     show_names=True,
 )
-
+template.main.append(chat_box)
 
 print("got here")
 
@@ -82,96 +86,87 @@ def update_safe(event):
     #with open('my_list.pkl', 'wb') as file:
         #pickle.dump(chat_box.value, file)
 
-    formatted_messages = []
-    formatted_messages.append({"role": "system", "content": """You are supposed to help
-                           with the knowledge management system
-                           of a research group. You are given the journal entries of different users (given by the name after the string "from user" taken over time while working on different projects. 
-            It may be the case, that the newest problem the user faces (the last message) can be solved by some old entries or at least old entries can
-                           help the user to find the problem better. 
-                           Please give the message numbers of the messages that you think are relevant for the newest problem the user faces and give a summary
-                           of what the user could do to solve the problem. 
-                           Ignore the last consecutive messages from the same user as he still knows what is problem is.
-                           If no message is relevant, write "no message is relevant".
-                           I there are relevant messages, return it in the following format:
-                            {
-                           Relevant messages: [message number 1, message number 2, ...]
-                            Summary: {summary}}
-                           The summary should be somthing in the direction of:
-                           Hey _insert_user_name, other people might have had the same problem before. Based on the questions _insert_massage_numbers 
-                           you could consider trying....
-                           Try clustering the messages into different problem solving approaches, if there are several, but please only if.
-                           """})
-    
-    # Transform the message list into the desired format
-    msg_nr = 0
-    for msg in chat_box.value:
-        msg_nr += 1
-        for role, content in msg.items():
-            formatted_messages.append({"role": "user", "content": "Mesage Nr.: " + str(msg_nr) + " from user " + role + ": " + content})
+    to_add = []
+    if list(event.new[-1].keys())[-1] == "You":
+        formatted_messages = []
+        formatted_messages.append({"role": "system", "content": """You are supposed to help
+                            with the knowledge management system
+                            of a research group. You are given the journal entries of different users (given by the name after the string "from user" taken over time while working on different projects. 
+                It may be the case, that the newest problem the user faces (the last message) can be solved by some old entries or at least old entries can
+                            help the user to find the problem better. 
+                            Please give the message numbers of the messages that you think are relevant for the newest problem the user faces and give a summary
+                            of what the user could do to solve the problem. 
+                            Ignore the last consecutive messages from the same user as he still knows what is problem is.
+                            If no message is relevant, write "no message is relevant".
+                            I there are relevant messages, return it in the following format:
+                                {
+                            Relevant messages: [message number 1, message number 2, ...]
+                                Summary: {summary}}
+                            The summary should be somthing in the direction of:
+                            Hey _insert_user_name, other people might have had the same problem before. Based on the questions _insert_massage_numbers 
+                            you could consider trying....
+                            Try clustering the messages into different problem solving approaches, if there are several, but please only if.
+                            """})
+        
+        # Transform the message list into the desired format
+        msg_nr = 0
+        for msg in chat_box.value:
+            msg_nr += 1
+            for role, content in msg.items():
+                formatted_messages.append({"role": "user", "content": "Mesage Nr.: " + str(msg_nr) + " from user " + role + ": " + content})
 
 
-    completion = openai.ChatCompletion.create(
-    model="gpt-4",
-    messages=formatted_messages
-    )
+        completion = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=formatted_messages
+        )
 
-    reply = completion.choices[0].message
+        reply = completion.choices[0].message
 
-    a = False
-    count = 0
-    numbers = []
-    while not a:
+        numbers = []
         try:
             completion = openai.ChatCompletion.create(
             model="gpt-4",
             messages=formatted_messages
             )
-
             reply = completion.choices[0].message["content"]
-            start = reply.index("[")
-            end = reply.index("]")
-            numbers = [int(i) for i in reply[start+1:end].split(",")]
-            chat_box.value.append({"GPT4": reply})
-            a = True
+            if reply != "no message is relevant":
+                start = reply.index("[")
+                end = reply.index("]")
+                try:
+                    numbers = [int(i) for i in reply[start+1:end].split(",")]
+                except Exception as E:
+                    print(E)
+                    completion = openai.ChatCompletion.create(
+                    model="gpt-4",
+                    messages=formatted_messages
+                    )
+                    reply = completion.choices[0].message["content"]
+                    numbers = [int(i) for i in reply[start+1:end].split(",")]
+                if len(numbers) != 0:
+                    print("got here")
+                    to_add.append({"Tipp": reply.split("Summary:")[1][:-1]})
+                    to_add.append({"Tipp": "Consider looking at these already sent messages again:"})
+                    msg_nr = 0
+                    for msg in chat_box.value:
+                        msg_nr += 1
+                        if msg_nr in numbers:
+                            for role, content in msg.items():
+                                content = f'User: {role}, Message: {content}'
+                                to_add.append({"Rewind": content})
+            chat_box.extend(to_add)
         except Exception as E:
             print(E)
-            count += 1
-            a = False
-            if count >+ 5:
-                a = True
-                print("failed")
-                exit()
-
-        styled_panes = []
-        msg_nr = 0
-        pane_style = {
-            'background-color': 'white',
-            'border-radius': '10px',  # Rounded corners
-            'box-shadow': '2px 2px 5px 2px rgba(0, 0, 0, 0.2)',  # Shadow
-            'padding': '10px',  # Padding
-            'margin': '10px'  # Margin between panes
-        }
-
-            
-        for msg in chat_box.value:
-            msg_nr += 1
-            if msg_nr in numbers:
-                for role, content in msg.items():
-                    print(role, content)
-                    content = f'User: {role}, Message: {content}'
-                    styled_pane = pn.pane.Str(content, style=pane_style)
-                    chat_box.append({"Machine 3": "How do you do fellow machines?"})
-                    styled_panes.append(styled_pane)
-
-
-        # Create a Panel column to display the styled panes
-        styled_column = pn.Column(*styled_panes)
-
-        # Display the Panel column
-        styled_column.servable()
+        
+        
     
 print("got here2 ")
 chat_box.param.watch(update_safe, 'value')
 
+
 print("got here3")
-chat_box.servable()
+template.servable()
+
+
+test = {"You": """first attempt of coating tapered fiber with SU8 by using different experimental parameters; 
+ nothing seen under microscope meaning either development step dissolved everything or the SU8 did not stick to fiber"""}
